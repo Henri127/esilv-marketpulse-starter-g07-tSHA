@@ -25,6 +25,42 @@ def load_prices():
 def filter_prices(prices, ticker):
     return [row for row in prices if row["ticker"] == ticker]
 
+def get_first_close(prices):
+    return float(prices[0]["close"])
+
+def get_last_close(prices):
+    return float(prices[-1]["close"])
+
+def display_market_summary(asset, prices, show_currency=True):
+    print(f"{asset["ticker"]} - {asset["name"]}")
+    print(f"Observations : {len(prices)}")
+    if (show_currency==False):
+        print(f"First Close : {get_first_close(prices)}")
+        print(f"Last Close : {get_last_close(prices)}")
+    else:
+        print(f"First Close : {get_first_close(prices)} USD")
+        print(f"Last Close : {get_last_close(prices)} USD")
+    
+
+def get_first_date(prices):
+    return prices[0]["date"]
+
+def get_last_date(prices):
+    return prices[-1]["date"]
+
+def min_close(prices):
+    min=float(prices[0]["close"])
+    for i in range(1,len(prices)):
+        if(min>float(prices[i]["close"])):
+            min=float(prices[i]["close"])
+    return min
+
+def max_close(prices):
+    max=float(prices[0]["close"])
+    for i in range(1,len(prices)):
+        if(max<float(prices[i]["close"])):
+            max=float(prices[i]["close"])
+    return max
 
 def main():
     instruments = load_instruments()
@@ -41,21 +77,24 @@ def main():
 
     print("=== MarketPulse ===")
     print()
-    print("Instrument")
-    print(f"{instrument['ticker']} - {instrument['name']}")
-    print(f"Last price: {instrument_latest['close']} {instrument['currency']}")
-    print()
-    print("Benchmark")
-    print(f"{benchmark['ticker']} - {benchmark['name']}")
-    print(f"Last level: {benchmark_latest['close']}")
-    print()
+    print("Market configuration")
     print(f"Period: {LOOKBACK_LABEL}")
     print(f"Interval: {INTERVAL_LABEL}")
     print()
-    print("Observations")
-    print(f"{instrument['ticker']}: {len(instrument_prices)}")
-    print(f"{benchmark['ticker']}: {len(benchmark_prices)}")
-
+    print("Instruments")
+    display_market_summary(instrument,instrument_prices)
+    print()
+    print("Benchmark")
+    display_market_summary(benchmark,benchmark_prices,False)
+    print()
+    print(get_first_date(prices))
+    print(get_last_date(prices))
+    print()
+    print(f"Max instrument : {max_close(instrument_prices)}")
+    print(f"Min instrument : {min_close(instrument_prices)}")
+    print()
+    print(f"Max benchmark : {max_close(benchmark_prices)}")
+    print(f"Min benchmark : {min_close(benchmark_prices)}")
 
 if __name__ == "__main__":
     main()
