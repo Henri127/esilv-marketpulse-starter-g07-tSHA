@@ -5,8 +5,8 @@ Copy this file to `TEAM.md` in your team repository and complete it before start
 ## Course
 
 - Module: MESIFI472326 - Python, Git, Linux
-- TD Group: GXX
-- MarketPulse Team: TXX
+- TD Group: G07
+- MarketPulse Team: TSHA
 
 ## Members
 
