@@ -16,6 +16,10 @@ def load_instruments():
     with open(DATA_DIR / "instruments.json", encoding="utf-8") as file:
         return json.load(file)
 
+def load_bloomberg():
+    with open(DATA_DIR / "bloomberg_reference_sample.json", encoding="utf-8") as file:
+        return json.load(file)
+
 
 def load_prices():
     with open(DATA_DIR / "prices.csv", encoding="utf-8") as file:
@@ -34,6 +38,7 @@ def get_last_date(prices):
 def main():
     instruments = load_instruments()
     prices = load_prices()
+    bloomberg=load_bloomberg()
 
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
@@ -67,6 +72,9 @@ def main():
     print()
     print("Market Metadata")
     print(json.dumps(instruments, indent=4))
+    print()
+    print("Provider label")
+    print(bloomberg['provider_stage'])
 
 
 if __name__ == "__main__":
