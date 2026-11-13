@@ -72,6 +72,9 @@ def main():
     print()
     print("Market Metadata")
     print(json.dumps(instruments, indent=4))
+    print()
+    print("Provider label")
+    print(bloomberg['provider_stage'])
 
 
 if __name__ == "__main__":
