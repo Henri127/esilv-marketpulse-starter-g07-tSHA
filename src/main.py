@@ -64,6 +64,9 @@ def main():
     print("Observations")
     print(f"{instrument['ticker']}: {len(instrument_prices)}")
     print(f"{benchmark['ticker']}: {len(benchmark_prices)}")
+    print()
+    print("Market Metadata")
+    print(json.dumps(instruments, indent=4))
 
 
 if __name__ == "__main__":
