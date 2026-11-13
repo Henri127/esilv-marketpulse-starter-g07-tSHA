@@ -39,7 +39,6 @@ def main():
     instruments = load_instruments()
     prices = load_prices()
     bloomberg=load_bloomberg()
-
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
 
@@ -75,6 +74,9 @@ def main():
     print()
     print("Provider label")
     print(bloomberg['provider_stage'])
+    print()
+    print("Access mode")
+    print(bloomberg["access_mode"])
 
 
 if __name__ == "__main__":
