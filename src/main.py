@@ -2,6 +2,8 @@ from pathlib import Path
 import csv
 import json
 from analytics import *
+import yfinance as yf
+from providers.yahoo_provider import *
 
 DATA_DIR = Path("data/sample")
 
@@ -72,23 +74,32 @@ def normalize_price_row(row):
         "close": float(row["close"]),
         "volume": int(row["volume"]),
     }
-
+YAHOO_SYMBOLS = {
+    "AAPL": "AAPL",
+    "SP500": "^GSPC",
+}
 def main():
+    instrument_prices = fetch_yahoo_prices(
+        symbol=YAHOO_SYMBOLS["AAPL"],
+        canonical_ticker="AAPL",
+        period="1mo",
+        interval="1d",
+    )
+
+    benchmark_prices = fetch_yahoo_prices(
+        symbol=YAHOO_SYMBOLS["SP500"],
+        canonical_ticker="SP500",
+        period="1mo",
+        interval="1d",
+    )
     instruments = load_instruments()
-    prices = load_prices()
 
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
 
-    instrument_prices = filter_prices(prices, instrument["ticker"])
-    benchmark_prices = filter_prices(prices, benchmark["ticker"])
-
     instrument_latest = instrument_prices[-1]
     benchmark_latest = benchmark_prices[-1]
-    normalized_prices = [
-        normalize_price_row(row)
-        for row in prices
-        ]
+    
     aligned_instrument, aligned_benchmark = align_series(
         instrument_prices,
         benchmark_prices,
@@ -107,6 +118,9 @@ def main():
     print(f"First Common date {get_first_date(aligned_benchmark)}")
     print(f"Last Common date {get_last_date(aligned_benchmark)}")
     print("=== MarketPulse ===")
+    print()
+    print("Provider")
+    print("Yahoo Finance via yfinance")
     print()
     print("Market configuration")
     print(f"Period: {LOOKBACK_LABEL}")
