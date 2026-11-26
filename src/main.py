@@ -8,8 +8,6 @@ from providers.yahoo_provider import *
 DATA_DIR = Path("data/sample")
 
 # These starter values mirror config/settings.yml.
-# settings.yml is a human-readable configuration contract in the CORE.
-# Parsing YAML is optional and is not required by the 18-hour lab sequence.
 LOOKBACK_LABEL = "1 month"
 INTERVAL_LABEL = "Daily"
 
@@ -19,9 +17,26 @@ def load_instruments():
         return json.load(file)
 
 
+def load_bloomberg():
+    with open(DATA_DIR / "bloomberg_reference_sample.json", encoding="utf-8") as file:
+        return json.load(file)
+
+
 def load_prices():
     with open(DATA_DIR / "prices.csv", encoding="utf-8") as file:
         return list(csv.DictReader(file))
+
+
+def normalize_price_row(row):
+    return {
+        "date": row["date"],
+        "ticker": row["ticker"],
+        "open": float(row["open"]),
+        "high": float(row["high"]),
+        "low": float(row["low"]),
+        "close": float(row["close"]),
+        "volume": int(row["volume"]),
+    }
 
 
 def filter_prices(prices, ticker):
@@ -94,6 +109,8 @@ def main():
     )
     instruments = load_instruments()
 
+    normalized_prices = [normalize_price_row(row) for row in prices]
+
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
 
@@ -132,6 +149,7 @@ def main():
     print(f"Min instrument : {min_close(instrument_prices)}")
     print(f"Period return : {instrument_return:+.2f}%")
     print()
+
     print("Benchmark")
     display_market_summary(benchmark,benchmark_prices,False)
     print(f"Max benchmark : {max_close(benchmark_prices)}")
