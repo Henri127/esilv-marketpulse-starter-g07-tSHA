@@ -1,7 +1,12 @@
 import yfinance as yf
 
 
-def fetch_yahoo_prices(symbol,canonical_ticker,period="1mo",interval="1d"):
+def fetch_yahoo_prices(
+    symbol,
+    canonical_ticker,
+    period="1mo",
+    interval="1d",
+):
     history = yf.Ticker(symbol).history(
         period=period,
         interval=interval,
