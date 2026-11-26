@@ -1,14 +1,9 @@
 from pathlib import Path
 import csv
 import json
-
-from analytics import (
-    align_series,
-    calculate_base_100,
-    calculate_period_return,
-    calculate_relative_performance,
-)
-
+from analytics import *
+import yfinance as yf
+from providers.yahoo_provider import *
 
 DATA_DIR = Path("data/sample")
 
@@ -94,59 +89,34 @@ def normalize_price_row(row):
         "close": float(row["close"]),
         "volume": int(row["volume"]),
     }
-
-
-def normalize_price_row(row):
-    return {
-        "date": row["date"],
-        "ticker": row["ticker"],
-        "open": float(row["open"]),
-        "high": float(row["high"]),
-        "low": float(row["low"]),
-        "close": float(row["close"]),
-        "volume": int(row["volume"]),
-    }
-
-
-def get_first_date(prices):
-    return prices[0]["date"]
-
-def get_last_date(prices):
-    return prices[-1]["date"]
-
-
-
+YAHOO_SYMBOLS = {
+    "AAPL": "AAPL",
+    "SP500": "^GSPC",
+}
 def main():
+    instrument_prices = fetch_yahoo_prices(
+        symbol=YAHOO_SYMBOLS["AAPL"],
+        canonical_ticker="AAPL",
+        period="1mo",
+        interval="1d",
+    )
+
+    benchmark_prices = fetch_yahoo_prices(
+        symbol=YAHOO_SYMBOLS["SP500"],
+        canonical_ticker="SP500",
+        period="1mo",
+        interval="1d",
+    )
     instruments = load_instruments()
-    bloomberg = load_bloomberg()
-    prices = load_prices()
 
     normalized_prices = [normalize_price_row(row) for row in prices]
 
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
 
-    instrument_prices = filter_prices(normalized_prices, instrument["ticker"])
-    benchmark_prices = filter_prices(normalized_prices, benchmark["ticker"])
-
-    aligned_instrument, aligned_benchmark = align_series(
-        instrument_prices,
-        benchmark_prices,
-    )
-
-    instrument_return = calculate_period_return(aligned_instrument)
-    benchmark_return = calculate_period_return(aligned_benchmark)
-    relative_performance = calculate_relative_performance(
-        instrument_return,
-        benchmark_return,
-    )
-
     instrument_latest = instrument_prices[-1]
     benchmark_latest = benchmark_prices[-1]
-    normalized_prices = [
-        normalize_price_row(row)
-        for row in prices
-        ]
+    
     aligned_instrument, aligned_benchmark = align_series(
         instrument_prices,
         benchmark_prices,
@@ -165,6 +135,9 @@ def main():
     print(f"First Common date {get_first_date(aligned_benchmark)}")
     print(f"Last Common date {get_last_date(aligned_benchmark)}")
     print("=== MarketPulse ===")
+    print()
+    print("Provider")
+    print("Yahoo Finance via yfinance")
     print()
     print("Market configuration")
     print(f"Period: {LOOKBACK_LABEL}")
