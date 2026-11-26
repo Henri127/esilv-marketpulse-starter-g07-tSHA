@@ -1,13 +1,18 @@
 from pathlib import Path
 import csv
 import json
-from analytics import *
+
+from analytics import (
+    align_series,
+    calculate_base_100,
+    calculate_period_return,
+    calculate_relative_performance,
+)
+
 
 DATA_DIR = Path("data/sample")
 
 # These starter values mirror config/settings.yml.
-# settings.yml is a human-readable configuration contract in the CORE.
-# Parsing YAML is optional and is not required by the 18-hour lab sequence.
 LOOKBACK_LABEL = "1 month"
 INTERVAL_LABEL = "Daily"
 
@@ -17,9 +22,26 @@ def load_instruments():
         return json.load(file)
 
 
+def load_bloomberg():
+    with open(DATA_DIR / "bloomberg_reference_sample.json", encoding="utf-8") as file:
+        return json.load(file)
+
+
 def load_prices():
     with open(DATA_DIR / "prices.csv", encoding="utf-8") as file:
         return list(csv.DictReader(file))
+
+
+def normalize_price_row(row):
+    return {
+        "date": row["date"],
+        "ticker": row["ticker"],
+        "open": float(row["open"]),
+        "high": float(row["high"]),
+        "low": float(row["low"]),
+        "close": float(row["close"]),
+        "volume": int(row["volume"]),
+    }
 
 
 def filter_prices(prices, ticker):
@@ -75,13 +97,28 @@ def normalize_price_row(row):
 
 def main():
     instruments = load_instruments()
+    bloomberg = load_bloomberg()
     prices = load_prices()
+
+    normalized_prices = [normalize_price_row(row) for row in prices]
 
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
 
-    instrument_prices = filter_prices(prices, instrument["ticker"])
-    benchmark_prices = filter_prices(prices, benchmark["ticker"])
+    instrument_prices = filter_prices(normalized_prices, instrument["ticker"])
+    benchmark_prices = filter_prices(normalized_prices, benchmark["ticker"])
+
+    aligned_instrument, aligned_benchmark = align_series(
+        instrument_prices,
+        benchmark_prices,
+    )
+
+    instrument_return = calculate_period_return(aligned_instrument)
+    benchmark_return = calculate_period_return(aligned_benchmark)
+    relative_performance = calculate_relative_performance(
+        instrument_return,
+        benchmark_return,
+    )
 
     instrument_latest = instrument_prices[-1]
     benchmark_latest = benchmark_prices[-1]
