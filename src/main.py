@@ -2,6 +2,9 @@ from pathlib import Path
 import csv
 import json
 from analytics import *
+import yfinance as yf
+
+from providers.yahoo_provider import *
 
 DATA_DIR = Path("data/sample")
 
@@ -48,103 +51,118 @@ def get_last_date(prices):
 
 
 def main():
+    
     instruments = load_instruments()
-    prices = load_prices()
 
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
 
-    instrument_prices = filter_prices(prices, instrument["ticker"])
-    benchmark_prices = filter_prices(prices, benchmark["ticker"])
+    YAHOO_SYMBOLS = {
+        "AAPL": "AAPL",
+        "SP500": "^GSPC",
+    }
 
-    instrument_latest = instrument_prices[-1]
-    benchmark_latest = benchmark_prices[-1]
+    instrument_prices = fetch_yahoo_prices(
+        symbol=YAHOO_SYMBOLS[instrument["ticker"]],
+        canonical_ticker=instrument["ticker"],
+        period="1mo",
+        interval="1d",
+    )
 
+    benchmark_prices = fetch_yahoo_prices(
+        symbol=YAHOO_SYMBOLS[benchmark["ticker"]],
+        canonical_ticker=benchmark["ticker"],
+        period="1mo",
+        interval="1d",
+    )
 
-    normalized_prices = [
-    normalize_price_row(row)
-    for row in prices
-    ]
-
-
+  
 
     aligned_instrument, aligned_benchmark = align_series(
-    instrument_prices,
-    benchmark_prices,
+        instrument_prices,
+        benchmark_prices,
     )
+
     
+
+    assert len(aligned_instrument) > 0, "Instrument series is empty"
+    assert len(aligned_benchmark) > 0, "Benchmark series is empty"
+
+    assert len(aligned_instrument) == len(aligned_benchmark), \
+        "Aligned series have different lengths"
+
+    same_dates = all(
+        instrument_row["date"] == benchmark_row["date"]
+        for instrument_row, benchmark_row in zip(
+            aligned_instrument,
+            aligned_benchmark,
+        )
+    )
+
+    assert same_dates, "Dates do not match"
+
     
 
 
-    instrument_return = calculate_period_return(
-    aligned_instrument
-    )
-
-    benchmark_return = calculate_period_return(
-        aligned_benchmark
-    )
-
-    instrument_base_100 = calculate_base_100(instrument_prices)[-1]["value"]
-    benchmark_base_100 = calculate_base_100(benchmark_prices)[-1]["value"]
-
+    instrument_return = calculate_period_return(aligned_instrument)
+    benchmark_return = calculate_period_return(aligned_benchmark)
 
     relative_performance = calculate_relative_performance(
         instrument_return,
-        benchmark_return
+        benchmark_return,
     )
 
+    
 
+    instrument_base_100 = calculate_base_100(aligned_instrument)
+    benchmark_base_100 = calculate_base_100(aligned_benchmark)
 
-        
+    instrument_base_100_final = instrument_base_100[-1]["value"]
+    benchmark_base_100_final = benchmark_base_100[-1]["value"]
+
+    
+    
     print("=== MarketPulse ===")
     print()
 
+    print("Provider")
+    print("Yahoo Finance via yfinance")
+    print()
+
     print("Market configuration")
-    print(f"Period   : {LOOKBACK_LABEL}")
-    print(f"Interval : {INTERVAL_LABEL}")
+    print(f"Instrument : {instrument['ticker']} - {instrument['name']}")
+    print(f"Benchmark  : {benchmark['name']}")
+    print(f"Period     : {LOOKBACK_LABEL}")
+    print(f"Interval   : {INTERVAL_LABEL}")
+    print()
+ 
+    print("Instrument return")
+    print(f"{instrument['ticker']} : {instrument_return:+.2f}%")
     print()
 
-    print("Instrument")
-    print(f"{instrument['ticker']} - {instrument['name']}")
-    print(f"Period return : {instrument_return:+.2f}%")
-    print()
-
-    print("Benchmark")
-    print(f"{benchmark['ticker']} - {benchmark['name']}")
-    print(f"Period return : {benchmark_return:+.2f}%")
+    print("Benchmark return")
+    print(f"{benchmark['ticker']} : {benchmark_return:+.2f}%")
     print()
 
     print("Relative performance")
     print(
         f"{instrument['ticker']} vs {benchmark['ticker']} : "
-        f"{relative_performance:+.2f} %"
+        f"{relative_performance:+.2f} percentage points"
     )
     print()
 
     print("Base 100")
     print(
-        f"{instrument['ticker']}  : "
-        f"100.00 -> {instrument_base_100:.2f}"
+        f"{instrument['ticker']} : "
+        f"100.00 -> {instrument_base_100_final:.2f}"
     )
     print(
         f"{benchmark['ticker']} : "
-        f"100.00 -> {benchmark_base_100:.2f}"
+        f"100.00 -> {benchmark_base_100_final:.2f}"
     )
-
-
+    print()
 
   
-
-    assert len(aligned_instrument) > 0
-    assert len(aligned_benchmark) > 0
-    assert len(aligned_instrument) == len(aligned_benchmark)
-
-
-
-
-
-
-    
 
 
 if __name__ == "__main__":
