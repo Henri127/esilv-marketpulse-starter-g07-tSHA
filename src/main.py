@@ -1,5 +1,4 @@
 from pathlib import Path
-import csv
 import json
 from analytics import *
 import yfinance as yf
@@ -7,9 +6,16 @@ from providers.yahoo_provider import *
 
 DATA_DIR = Path("data/sample")
 
-# These starter values mirror config/settings.yml.
 LOOKBACK_LABEL = "1 month"
 INTERVAL_LABEL = "Daily"
+YAHOO_PERIOD = "1mo"
+YAHOO_INTERVAL = "1d"
+
+# Canonical MarketPulse ticker -> Yahoo Finance symbol
+YAHOO_SYMBOLS = {
+    "AAPL": "AAPL",
+    "SP500": "^GSPC",
+}
 
 
 def load_instruments():
@@ -125,15 +131,6 @@ def main():
         aligned_instrument
     )
 
-    benchmark_return = calculate_period_return(
-        aligned_benchmark
-    )
-    retlative_perf=calculate_relative_performance(instrument_return,benchmark_return)
-    instrument_base=calculate_base_100(instrument_prices)[-1]["value"]
-    benchmark_base=calculate_base_100(benchmark_prices)[-1]["value"]
-    print(f"{len(aligned_benchmark)} observations")
-    print(f"First Common date {get_first_date(aligned_benchmark)}")
-    print(f"Last Common date {get_last_date(aligned_benchmark)}")
     print("=== MarketPulse ===")
     print()
     print("Provider")
@@ -143,27 +140,33 @@ def main():
     print(f"Period: {LOOKBACK_LABEL}")
     print(f"Interval: {INTERVAL_LABEL}")
     print()
-    print("Instruments")
-    display_market_summary(instrument,instrument_prices)
-    print(f"Max instrument : {max_close(instrument_prices)}")
-    print(f"Min instrument : {min_close(instrument_prices)}")
-    print(f"Period return : {instrument_return:+.2f}%")
+    print("Market configuration")
+    print(f"Instrument : {instrument['ticker']} - {instrument['name']}")
+    print(f"Benchmark  : {benchmark['ticker']} - {benchmark['name']}")
+    print(f"Period     : {LOOKBACK_LABEL}")
+    print(f"Interval   : {INTERVAL_LABEL}")
+    print(f"Common observations : {len(aligned_instrument)}")
+    print(f"From {aligned_instrument[0]['date']} to {aligned_instrument[-1]['date']}")
     print()
-
-    print("Benchmark")
-    display_market_summary(benchmark,benchmark_prices,False)
-    print(f"Max benchmark : {max_close(benchmark_prices)}")
-    print(f"Min benchmark : {min_close(benchmark_prices)}")
-    print(f"Period return : {benchmark_return:+.2f}%")
+    print(f"Instrument return : {instrument_return:.2f}%")
+    print(f"Benchmark return  : {benchmark_return:.2f}%")
     print()
     print("Relative performance")
-    print(f"AAPL vs SP500  = {retlative_perf:+.2f} percentage points")
+    print(
+        f"{instrument['ticker']} vs {benchmark['ticker']} : "
+        f"{relative_performance:+.2f} percentage points"
+    )
     print()
     print("Base 100")
-    print(f"AAPL  : 100.00 -> {instrument_base:.2f}")
-    print(f"SP500 : 100.00 -> {benchmark_base:.2f}")
-    
+    print(
+        f"{instrument['ticker']:<5} : "
+        f"{instrument_base_100[0]['value']:.2f} -> {instrument_base_100[-1]['value']:.2f}"
+    )
+    print(
+        f"{benchmark['ticker']:<5} : "
+        f"{benchmark_base_100[0]['value']:.2f} -> {benchmark_base_100[-1]['value']:.2f}"
+    )
+
 
 if __name__ == "__main__":
     main()
- 
