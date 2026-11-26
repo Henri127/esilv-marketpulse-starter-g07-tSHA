@@ -95,6 +95,27 @@ def normalize_price_row(row):
         "volume": int(row["volume"]),
     }
 
+
+def normalize_price_row(row):
+    return {
+        "date": row["date"],
+        "ticker": row["ticker"],
+        "open": float(row["open"]),
+        "high": float(row["high"]),
+        "low": float(row["low"]),
+        "close": float(row["close"]),
+        "volume": int(row["volume"]),
+    }
+
+
+def get_first_date(prices):
+    return prices[0]["date"]
+
+def get_last_date(prices):
+    return prices[-1]["date"]
+
+
+
 def main():
     instruments = load_instruments()
     bloomberg = load_bloomberg()
@@ -155,6 +176,7 @@ def main():
     print(f"Min instrument : {min_close(instrument_prices)}")
     print(f"Period return : {instrument_return:+.2f}%")
     print()
+
     print("Benchmark")
     display_market_summary(benchmark,benchmark_prices,False)
     print(f"Max benchmark : {max_close(benchmark_prices)}")
