@@ -3,10 +3,8 @@ import plotly.graph_objects as go
 
 from main import build_market_snapshot
 
-
 app = Dash(__name__)
 
-# Build the shared application result once (no provider call, no formula here)
 snapshot = build_market_snapshot()
 
 provider = snapshot["provider"]
@@ -22,7 +20,6 @@ relative_performance = snapshot["relative_performance"]
 
 instrument_base_100 = snapshot["instrument_base_100"]
 benchmark_base_100 = snapshot["benchmark_base_100"]
-
 
 context = html.Div(
     [
@@ -82,7 +79,6 @@ figure.add_trace(
         name=benchmark["ticker"],
     )
 )
-
 figure.update_layout(
     title="Instrument vs Benchmark - Base 100",
     xaxis_title="Date",
@@ -97,7 +93,6 @@ app.layout = html.Div(
         dcc.Graph(figure=figure),
     ]
 )
-
 
 if __name__ == "__main__":
     app.run(debug=False)
