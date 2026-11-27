@@ -14,6 +14,10 @@ REFERENCE_SAMPLE = Path(
 
 
 # ---------- APPROVED_SAMPLE path ----------
+REFERENCE_SAMPLE = Path(
+    "data/sample/bloomberg_reference_sample.json"
+)
+ACCESS_MODE = "APPROVED_SAMPLE"
 
 def load_bloomberg_reference_sample(
     path=REFERENCE_SAMPLE,
@@ -41,6 +45,7 @@ def find_reference_series(
 
 def normalize_reference_series(series):
     # Teaching wrapper keys, not Bloomberg field mnemonics
+def normalize_reference_series(series):
     canonical_ticker = series["canonical_ticker"]
     rows = []
 
@@ -105,3 +110,22 @@ def fetch_bloomberg_prices(
     raise ValueError(
         f"Bloomberg access mode not available: {mode}"
     )
+def fetch_raw_bloomberg_history(identifier, start_date, end_date):
+    raise NotImplementedError("LIVE Bloomberg access is not enabled.")
+
+
+def normalize_bloomberg_history(raw_data, canonical_ticker):
+    raise NotImplementedError("LIVE Bloomberg normalization is not enabled.")
+def fetch_bloomberg_prices(canonical_ticker, start_date=None, end_date=None):
+    if canonical_ticker not in BLOOMBERG_IDENTIFIERS:
+        raise ValueError(f"Unsupported canonical ticker: {canonical_ticker}")
+
+    provider_identifier = BLOOMBERG_IDENTIFIERS[canonical_ticker]
+
+    if ACCESS_MODE == "APPROVED_SAMPLE":
+        return fetch_approved_sample_prices(provider_identifier)
+
+    raw_data = fetch_raw_bloomberg_history(
+        provider_identifier, start_date, end_date
+    )
+    return normalize_bloomberg_history(raw_data, canonical_ticker)
