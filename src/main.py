@@ -52,6 +52,14 @@ def build_market_snapshot():
         benchmark_return,
     )
 
+    instrument_base_100 = calculate_base_100(aligned_instrument)
+    benchmark_base_100 = calculate_base_100(aligned_benchmark)
+
+    provider_label = (
+        "Bloomberg - LIVE"
+        if ACCESS_MODE == "LIVE"
+        else "Bloomberg stage - APPROVED_SAMPLE"
+    )
     return {
         "provider": f"Bloomberg stage - {BLOOMBERG_MODE}",
         "lookback": LOOKBACK_LABEL,
