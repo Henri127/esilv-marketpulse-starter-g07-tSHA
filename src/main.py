@@ -4,14 +4,17 @@ import json
 from analytics import *
 import yfinance as yf
 from providers.yahoo_provider import *
-
+from providers.bloomberg_provider import *
 DATA_DIR = Path("data/sample")
 
 # These starter values mirror config/settings.yml.
 LOOKBACK_LABEL = "1 month"
 INTERVAL_LABEL = "Daily"
 
-
+YAHOO_SYMBOLS = {
+    "AAPL": "AAPL",
+    "SP500": "^GSPC",
+}
 def load_instruments():
     with open(DATA_DIR / "instruments.json", encoding="utf-8") as file:
         return json.load(file)
@@ -89,79 +92,100 @@ def normalize_price_row(row):
         "close": float(row["close"]),
         "volume": int(row["volume"]),
     }
-YAHOO_SYMBOLS = {
-    "AAPL": "AAPL",
-    "SP500": "^GSPC",
-}
-def main():
-    instrument_prices = fetch_yahoo_prices(
-        symbol=YAHOO_SYMBOLS["AAPL"],
-        canonical_ticker="AAPL",
-        period="1mo",
-        interval="1d",
-    )
 
-    benchmark_prices = fetch_yahoo_prices(
-        symbol=YAHOO_SYMBOLS["SP500"],
-        canonical_ticker="SP500",
-        period="1mo",
-        interval="1d",
-    )
+def build_market_snapshot(instrument_ticker="AAPL",
+    benchmark_ticker="SP500",
+    lookback=LOOKBACK_LABEL,
+    interval=INTERVAL_LABEL,):
     instruments = load_instruments()
-
-    normalized_prices = [normalize_price_row(row) for row in prices]
-
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
 
-    instrument_latest = instrument_prices[-1]
-    benchmark_latest = benchmark_prices[-1]
-    
+    instrument_prices = fetch_bloomberg_prices(instrument_ticker)
+    benchmark_prices = fetch_bloomberg_prices(benchmark_ticker)
+
     aligned_instrument, aligned_benchmark = align_series(
         instrument_prices,
         benchmark_prices,
     )
-    instrument_return = calculate_period_return(
-        aligned_instrument
+
+    instrument_return = calculate_period_return(aligned_instrument)
+    benchmark_return = calculate_period_return(aligned_benchmark)
+    relative_performance = calculate_relative_performance(
+        instrument_return,
+        benchmark_return,
     )
 
-    benchmark_return = calculate_period_return(
-        aligned_benchmark
+    instrument_base_100 = calculate_base_100(aligned_instrument)
+    benchmark_base_100 = calculate_base_100(aligned_benchmark)
+
+    provider_label = (
+        "Bloomberg"
+        if ACCESS_MODE == "LIVE"
+        else "Bloomberg stage"
     )
-    retlative_perf=calculate_relative_performance(instrument_return,benchmark_return)
-    instrument_base=calculate_base_100(instrument_prices)[-1]["value"]
-    benchmark_base=calculate_base_100(benchmark_prices)[-1]["value"]
-    print(f"{len(aligned_benchmark)} observations")
-    print(f"First Common date {get_first_date(aligned_benchmark)}")
-    print(f"Last Common date {get_last_date(aligned_benchmark)}")
+    return {
+        "provider": provider_label,
+        "access_mode": ACCESS_MODE,
+        "lookback": lookback,
+        "interval": interval,
+        "instrument": instrument,
+        "benchmark": benchmark,
+        "instrument_prices": aligned_instrument,
+        "benchmark_prices": aligned_benchmark,
+        "instrument_return": instrument_return,
+        "benchmark_return": benchmark_return,
+        "relative_performance": relative_performance,
+        "instrument_base_100": instrument_base_100,
+        "benchmark_base_100": benchmark_base_100,
+    }
+
+def main():
+    snapshot = build_market_snapshot()
+
+    aligned_instrument = snapshot["instrument_prices"]
+    aligned_benchmark = snapshot["benchmark_prices"]
+    instrument = snapshot["instrument"]
+    benchmark = snapshot["benchmark"]
+    instrument_return = snapshot["instrument_return"]
+    benchmark_return = snapshot["benchmark_return"]
+    relative_perf = snapshot["relative_performance"]
+    instrument_base = snapshot["instrument_base_100"][-1]["value"]
+    benchmark_base = snapshot["benchmark_base_100"][-1]["value"]
+
     print("=== MarketPulse ===")
     print()
     print("Provider")
-    print("Yahoo Finance via yfinance")
+    print(snapshot["provider"])
+    print()
+    print("Access mode")
+    print(snapshot["access_mode"])
     print()
     print("Market configuration")
-    print(f"Period: {LOOKBACK_LABEL}")
-    print(f"Interval: {INTERVAL_LABEL}")
+    print(f"Period: {snapshot['lookback']}")
+    print(f"Interval: {snapshot['interval']}")
     print()
     print("Instruments")
-    display_market_summary(instrument,instrument_prices)
-    print(f"Max instrument : {max_close(instrument_prices)}")
-    print(f"Min instrument : {min_close(instrument_prices)}")
+    display_market_summary(instrument, aligned_instrument)
+    print(f"Max instrument : {max_close(aligned_instrument)}")
+    print(f"Min instrument : {min_close(aligned_instrument)}")
     print(f"Period return : {instrument_return:+.2f}%")
     print()
-
     print("Benchmark")
-    display_market_summary(benchmark,benchmark_prices,False)
-    print(f"Max benchmark : {max_close(benchmark_prices)}")
-    print(f"Min benchmark : {min_close(benchmark_prices)}")
+    display_market_summary(benchmark, aligned_benchmark, False)
+    print(f"Max benchmark : {max_close(aligned_benchmark)}")
+    print(f"Min benchmark : {min_close(aligned_benchmark)}")
     print(f"Period return : {benchmark_return:+.2f}%")
     print()
     print("Relative performance")
-    print(f"AAPL vs SP500  = {retlative_perf:+.2f} percentage points")
+    print(
+        f"{instrument['ticker']} vs {benchmark['ticker']}  = "
+        f"{relative_perf:+.2f} percentage points"
+    )
     print()
     print("Base 100")
-    print(f"AAPL  : 100.00 -> {instrument_base:.2f}")
-    print(f"SP500 : 100.00 -> {benchmark_base:.2f}")
+    print(f"{instrument['ticker']}  : 100.00 -> {instrument_base:.2f}")
+    print(f"{benchmark['ticker']} : 100.00 -> {benchmark_base:.2f}")
     
 
 if __name__ == "__main__":
