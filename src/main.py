@@ -1,5 +1,4 @@
 from pathlib import Path
-import csv
 import json
 from analytics import *
 import yfinance as yf
@@ -7,9 +6,16 @@ from providers.yahoo_provider import *
 from providers.bloomberg_provider import *
 DATA_DIR = Path("data/sample")
 
-# These starter values mirror config/settings.yml.
 LOOKBACK_LABEL = "1 month"
 INTERVAL_LABEL = "Daily"
+YAHOO_PERIOD = "1mo"
+YAHOO_INTERVAL = "1d"
+
+# Canonical MarketPulse ticker -> Yahoo Finance symbol
+YAHOO_SYMBOLS = {
+    "AAPL": "AAPL",
+    "SP500": "^GSPC",
+}
 
 YAHOO_SYMBOLS = {
     "AAPL": "AAPL",
@@ -190,4 +196,3 @@ def main():
 
 if __name__ == "__main__":
     main()
- 

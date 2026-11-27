@@ -20,6 +20,17 @@ not demonstrated
 | Instrument | AAPL | AAPL US Equity |
 | Benchmark | SP500 | SPX Index |
 
+## Inspected inputs
+
+| Series | provider_identifier | canonical_ticker | Observations | First date | Last date |
+|---|---|---|---|---|---|
+| instrument | AAPL US Equity | AAPL | 21 | 2026-09-01 | 2026-09-30 |
+| benchmark | SPX Index | SP500 | 21 | 2026-09-01 | 2026-09-30 |
+
+Each observation contains the keys `observation_date`, `open_value`,
+`high_value`, `low_value`, `close_value` and `volume_value`.
+No missing value was found in either series.
+
 ## Field mapping
 
 | MarketPulse field | Source field or mapping | Status / notes |
@@ -33,13 +44,21 @@ not demonstrated
 | volume | volume_value | int |
 
 
+
 ## TD10 handoff
 
-- Access mode:approved_sample
-- Instrument identifier:AAPL US Equity
+- Access mode: APPROVED_SAMPLE
+- Instrument identifier: AAPL US Equity
 - Benchmark identifier:SPX Index
 - Date representation: YYYY-MM-DD
-- Input structure: 
-- Missing fields: none
+- Input structure:  JSON file containing metadata and a series array
+- Missing fields: None in the provided sample structure
 - Special normalization notes:
-- Expected canonical reference : data/sample/bloomberg_reference_expected.json
+observation_date -> date
+open_value -> open
+high_value -> high
+low_value -> low
+close_value -> close
+volume_value -> volume
+Expected canonical reference:  
+data/sample/bloomberg_reference_expected.json
