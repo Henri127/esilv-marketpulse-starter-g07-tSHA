@@ -126,9 +126,9 @@ def build_market_snapshot(instrument_ticker="AAPL",
     benchmark_base_100 = calculate_base_100(aligned_benchmark)
 
     provider_label = (
-        "Bloomberg"
+        "Bloomberg - LIVE"
         if ACCESS_MODE == "LIVE"
-        else "Bloomberg stage"
+        else "Bloomberg stage - APPROVED_SAMPLE"
     )
     return {
         "provider": provider_label,
