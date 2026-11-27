@@ -42,55 +42,39 @@ performance = html.Div(
         html.Div(
             [
                 html.H3("Instrument Return"),
-                html.P(
-                    f"{instrument_return:+.2f}%"
-                ),
+                html.P(f"{instrument_return:+.2f}%"),
             ]
         ),
         html.Div(
             [
                 html.H3("Benchmark Return"),
-                html.P(
-                    f"{benchmark_return:+.2f}%"
-                ),
+                html.P(f"{benchmark_return:+.2f}%"),
             ]
         ),
         html.Div(
             [
                 html.H3("Relative Performance"),
-                html.P(
-                    f"{relative_performance:+.2f} pts"
-                ),
+                html.P(f"{relative_performance:+.2f} pts"),
             ]
         ),
     ]
 )
 
 figure = go.Figure()
+
 figure.add_trace(
     go.Scatter(
-        x=[
-            row["date"]
-            for row in instrument_base_100
-        ],
-        y=[
-            row["value"]
-            for row in instrument_base_100
-        ],
+        x=[row["date"] for row in instrument_base_100],
+        y=[row["value"] for row in instrument_base_100],
         mode="lines",
         name=instrument["ticker"],
     )
 )
+
 figure.add_trace(
     go.Scatter(
-        x=[
-            row["date"]
-            for row in benchmark_base_100
-        ],
-        y=[
-            row["value"]
-            for row in benchmark_base_100
-        ],
+        x=[row["date"] for row in benchmark_base_100],
+        y=[row["value"] for row in benchmark_base_100],
         mode="lines",
         name=benchmark["ticker"],
     )
