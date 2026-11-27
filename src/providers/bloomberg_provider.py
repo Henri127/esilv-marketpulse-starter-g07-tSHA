@@ -1,18 +1,19 @@
 import json
 from pathlib import Path
-from analytics import align_series
 
+
+# Canonical MarketPulse ticker -> Bloomberg identifier (TD09 mapping)
 BLOOMBERG_IDENTIFIERS = {
     "AAPL": "AAPL US Equity",
     "SP500": "SPX Index",
 }
 
-
-
 REFERENCE_SAMPLE = Path(
     "data/sample/bloomberg_reference_sample.json"
 )
 
+
+# ---------- APPROVED_SAMPLE path ----------
 
 def load_bloomberg_reference_sample(
     path=REFERENCE_SAMPLE,
@@ -39,6 +40,7 @@ def find_reference_series(
 
 
 def normalize_reference_series(series):
+    # Teaching wrapper keys, not Bloomberg field mnemonics
     canonical_ticker = series["canonical_ticker"]
     rows = []
 
@@ -69,64 +71,37 @@ def fetch_approved_sample_prices(
     return normalize_reference_series(series)
 
 
-if __name__ == "__main__":
+# ---------- LIVE boundary (not available in this environment) ----------
 
-    apple_prices = fetch_approved_sample_prices(
-        BLOOMBERG_IDENTIFIERS["AAPL"]
+def fetch_raw_bloomberg_history(
+    identifier,
+    start_date,
+    end_date,
+):
+    # The instructor supplies or demonstrates
+    # the environment-specific implementation.
+    raise NotImplementedError
+
+
+def normalize_bloomberg_history(
+    raw_data,
+    canonical_ticker,
+):
+    # LIVE field names must come from docs/BLOOMBERG_FIELD_MAPPING.md
+    raise NotImplementedError
+
+
+# ---------- Provider entry point ----------
+
+def fetch_bloomberg_prices(
+    canonical_ticker,
+    mode="APPROVED_SAMPLE",
+):
+    identifier = BLOOMBERG_IDENTIFIERS[canonical_ticker]
+
+    if mode == "APPROVED_SAMPLE":
+        return fetch_approved_sample_prices(identifier)
+
+    raise ValueError(
+        f"Bloomberg access mode not available: {mode}"
     )
-
-    sp500_prices = fetch_approved_sample_prices(
-        BLOOMBERG_IDENTIFIERS["SP500"]
-    )
-
-    print("AAPL:")
-    print(apple_prices[:2])
-
-    print("\nSP500:")
-    print(sp500_prices[:2])
-
-
-        # Part 8 - comparaison
-
-    EXPECTED_FILE = Path(
-        "data/sample/bloomberg_reference_expected.json"
-    )
-
-    with open(EXPECTED_FILE, encoding="utf-8") as file:
-        expected_data = json.load(file)
-
-    expected_rows = expected_data["rows"]
-
-    actual_rows = apple_prices + sp500_prices
-
-    print("\nPart 8 - Expected result comparison:")
-    print("Actual rows:", len(actual_rows))
-    print("Expected rows:", len(expected_rows))
-
-    assert actual_rows == expected_rows
-
-    print("SUCCESS: normalized rows match expected result.")
-
-
-        # Part 9 
-
-    aligned_apple, aligned_sp500 = align_series(
-        apple_prices,
-        sp500_prices,
-    )
-
-    print("\nPart 9 - Alignment:")
-    print("AAPL rows:", len(aligned_apple))
-    print("SP500 rows:", len(aligned_sp500))
-
-    assert len(aligned_apple) == len(aligned_sp500)
-
-    assert [
-        row["date"] for row in aligned_apple
-    ] == [
-        row["date"] for row in aligned_sp500
-    ]
-
-    print("SUCCESS: Bloomberg series are aligned.")
-
-

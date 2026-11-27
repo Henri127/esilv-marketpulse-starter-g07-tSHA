@@ -13,13 +13,23 @@ docs/10_BLOOMBERG_INSTRUCTOR_REFERENCE.md
 Live connectivity:
 not demonstrated
 
-
 ## Market instruments
 
 | Role | Canonical ticker | Bloomberg identifier |
 |---|---|---|
 | Instrument | AAPL | AAPL US Equity |
 | Benchmark | SP500 | SPX Index |
+
+## Inspected inputs
+
+| Series | provider_identifier | canonical_ticker | Observations | First date | Last date |
+|---|---|---|---|---|---|
+| instrument | AAPL US Equity | AAPL | 21 | 2026-09-01 | 2026-09-30 |
+| benchmark | SPX Index | SP500 | 21 | 2026-09-01 | 2026-09-30 |
+
+Each observation contains the keys `observation_date`, `open_value`,
+`high_value`, `low_value`, `close_value` and `volume_value`.
+No missing value was found in either series.
 
 ## Field mapping
 
