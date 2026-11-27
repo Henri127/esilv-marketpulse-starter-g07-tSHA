@@ -4,16 +4,14 @@
 
 APPROVED_SAMPLE
 
-- Source: `data/sample/bloomberg_reference_sample.json`
-- Reference: `docs/10_BLOOMBERG_INSTRUCTOR_REFERENCE.md` (instructor reference mapping)
-- Sample provenance: instructor fallback fixture
-- Expected canonical reference: `data/sample/bloomberg_reference_expected.json`
-- Live connectivity: not demonstrated
+Source:
+data/sample/bloomberg_reference_sample.json
 
-The fixture declares `"access_mode": "approved_sample"` and
-`"is_live_bloomberg_output": false`. Its values are illustrative teaching
-values reused from `data/sample/prices.csv`, not certified Bloomberg
-historical observations.
+Reference:
+docs/10_BLOOMBERG_INSTRUCTOR_REFERENCE.md
+
+Live connectivity:
+not demonstrated
 
 ## Market instruments
 
@@ -37,36 +35,22 @@ No missing value was found in either series.
 
 | MarketPulse field | Source field or mapping | Status / notes |
 |---|---|---|
-| date | `observation_date` | teaching wrapper key, ISO string `YYYY-MM-DD` |
-| ticker | application mapping from `canonical_ticker` | AAPL or SP500, never the Bloomberg identifier |
-| open | `open_value` | teaching wrapper key, convert to float |
-| high | `high_value` | teaching wrapper key, convert to float |
-| low | `low_value` | teaching wrapper key, convert to float |
-| close | `close_value` | teaching wrapper key, convert to float |
-| volume | `volume_value` | teaching wrapper key, convert to int (0 for SPX Index) |
+| date | observation_date | string |
+| ticker | application mapping | AAPL or SP500 |
+| open | open_value | float |
+| high | high_value | float |
+| low | low_value | float |
+| close | close_value | float |
+| volume | volume_value | int |
 
-Teaching wrapper key != Bloomberg LIVE field mnemonic.
-
-The keys above come from the approved fallback fixture. They are not
-Bloomberg field mnemonics, and no LIVE Bloomberg field name is claimed
-in this document.
 
 ## TD10 handoff
 
-- Access mode: APPROVED_SAMPLE
-- Instrument identifier: AAPL US Equity -> canonical ticker AAPL
-- Benchmark identifier: SPX Index -> canonical ticker SP500
-- Date representation: ISO string `YYYY-MM-DD` in `observation_date`
-- Input structure: JSON object with metadata and a `series` list;
-  each series has `role`, `canonical_ticker`, `provider_identifier`
-  and an `observations` list
-- Missing fields: none in the sample
+- Access mode:approved_sample
+- Instrument identifier:AAPL US Equity
+- Benchmark identifier:SPX Index
+- Date representation: YYYY-MM-DD
+- Input structure: 
+- Missing fields: none
 - Special normalization notes:
-  - SPX Index prices are stored as integers (for example 6600):
-    convert open/high/low/close to float
-  - SPX Index `volume_value` is 0 (an index has no traded volume)
-  - the output ticker must be the canonical ticker, not the
-    Bloomberg identifier
-  - Bloomberg identifiers stay inside the provider, analytics.py
-    remains unchanged
-- Expected canonical reference: `data/sample/bloomberg_reference_expected.json`
+- Expected canonical reference : data/sample/bloomberg_reference_expected.json
